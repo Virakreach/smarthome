@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Home Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 flex items-center justify-center h-screen text-white">
+  <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl text-center w-80 border border-slate-700">
+    <h1 class="text-2xl font-bold mb-6">Living Room Light</h1>
+    
+    <div id="statusBadge" class="mb-6 px-4 py-2 rounded-full font-semibold bg-slate-600 text-sm">
+      Connecting...
+    </div>
+
+    <button id="toggleBtn" class="bg-blue-600 hover:bg-blue-700 font-bold py-3 px-6 rounded-xl w-full transition duration-200">
+      Turn ON
+    </button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_API_KEY", // Replace with your Firebase API key
+      databaseURL: "https://smarthome-5c06b-default-rtdb.asia-southeast1.firebasedatabase.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const lightRef = ref(db, 'smart_home/light_1');
+
+    const btn = document.getElementById('toggleBtn');
+    const badge = document.getElementById('statusBadge');
+    let currentState = false;
+
+    // Listen to real-time changes
+    onValue(lightRef, (snapshot) => {
+      currentState = snapshot.val() || false;
+      
+      if (currentState) {
+        badge.textContent = 'Status: ON';
+        badge.className = 'mb-6 px-4 py-2 rounded-full font-semibold text-sm bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        btn.textContent = 'Turn OFF';
+        btn.className = 'bg-rose-600 hover:bg-rose-700 font-bold py-3 px-6 rounded-xl w-full transition duration-200';
+      } else {
+        badge.textContent = 'Status: OFF';
+        badge.className = 'mb-6 px-4 py-2 rounded-full font-semibold text-sm bg-rose-500/20 text-rose-400 border border-rose-500/30';
+        btn.textContent = 'Turn ON';
+        btn.className = 'bg-blue-600 hover:bg-blue-700 font-bold py-3 px-6 rounded-xl w-full transition duration-200';
+      }
+    });
+
+    // Send state to database on click
+    btn.addEventListener('click', () => {
+      set(lightRef, !currentState);
+    });
+  </script>
+</body>
+</html>
