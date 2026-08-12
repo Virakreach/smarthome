@@ -2,59 +2,157 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Smart Home Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Home 8-Channel Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 flex items-center justify-center h-screen text-white">
-  <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl text-center w-80 border border-slate-700">
-    <h1 class="text-2xl font-bold mb-6">Living Room Light</h1>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 flex flex-col items-center">
+
+  <header class="mb-8 text-center">
+    <h1 class="text-3xl font-extrabold text-blue-400">Smart Home Controller</h1>
+    <p class="text-slate-400 text-sm mt-1">Real-time ESP32 Control Dashboard</p>
+  </header>
+
+  <!-- 8 Device Cards Grid -->
+  <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
     
-    <div id="statusBadge" class="mb-6 px-4 py-2 rounded-full font-semibold bg-slate-600 text-sm">
-      Connecting...
+    <!-- Living Room Lamp -->
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-semibold text-lg">Living Room Lamp</h2>
+          <span id="badge-living_room" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
+        </div>
+      </div>
+      <button id="btn-living_room" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
     </div>
 
-    <button id="toggleBtn" class="bg-blue-600 hover:bg-blue-700 font-bold py-3 px-6 rounded-xl w-full transition duration-200">
-      Turn ON
-    </button>
-  </div>
+    <!-- Bed Lamp -->
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-semibold text-lg">Bed Lamp</h2>
+          <span id="badge-bed_lamp" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
+        </div>
+      </div>
+      <button id="btn-bed_lamp" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
+    </div>
 
+    <!-- Master Bedroom Lamp -->
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-semibold text-lg">Master Bed Lamp</h2>
+          <span id="badge-master_bed" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
+        </div>
+      </div>
+      <button id="btn-master_bed" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
+    </div>
+
+    <!-- Kitchen Lamp -->
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-semibold text-lg">Kitchen Lamp</h2>
+          <span id="badge-kitchen" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
+        </div>
+      </div>
+      <button id="btn-kitchen" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
+    </div>
+
+    <!-- Toilet Lamp -->
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-semibold text-lg">Toilet Lamp</h2>
+          <span id="badge-toilet" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
+        </div>
+      </div>
+      <button id="btn-toilet" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
+    </div>
+
+    <!-- AC -->
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-semibold text-lg">AC Power</h2>
+          <span id="badge-ac" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
+        </div>
+      </div>
+      <button id="btn-ac" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
+    </div>
+
+    <!-- Main Door -->
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-semibold text-lg">Main Door Lock</h2>
+          <span id="badge-main_door" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
+        </div>
+      </div>
+      <button id="btn-main_door" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
+    </div>
+
+    <!-- Music System -->
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-semibold text-lg">Music System</h2>
+          <span id="badge-music" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
+        </div>
+      </div>
+      <button id="btn-music" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
+    </div>
+
+  </main>
+
+  <!-- Firebase JavaScript Setup -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyBv-B-d6-lDoDp_cxyxJ5UKe_iyWmKtHJo", // Replace with your Firebase API key
+      apiKey: "AIzaSyBv-B-d6-lDoDp_cxyxJ5UKe_iyWmKtHJo",
       databaseURL: "https://smarthome-5c06b-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const lightRef = ref(db, 'smart_home/light_1');
 
-    const btn = document.getElementById('toggleBtn');
-    const badge = document.getElementById('statusBadge');
-    let currentState = false;
+    const devices = [
+      "living_room", "bed_lamp", "master_bed", "kitchen",
+      "toilet", "ac", "main_door", "music"
+    ];
 
-    // Listen to real-time changes
-    onValue(lightRef, (snapshot) => {
-      currentState = snapshot.val() || false;
-      
-      if (currentState) {
-        badge.textContent = 'Status: ON';
-        badge.className = 'mb-6 px-4 py-2 rounded-full font-semibold text-sm bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-        btn.textContent = 'Turn OFF';
-        btn.className = 'bg-rose-600 hover:bg-rose-700 font-bold py-3 px-6 rounded-xl w-full transition duration-200';
-      } else {
-        badge.textContent = 'Status: OFF';
-        badge.className = 'mb-6 px-4 py-2 rounded-full font-semibold text-sm bg-rose-500/20 text-rose-400 border border-rose-500/30';
-        btn.textContent = 'Turn ON';
-        btn.className = 'bg-blue-600 hover:bg-blue-700 font-bold py-3 px-6 rounded-xl w-full transition duration-200';
-      }
-    });
+    const stateMap = {};
 
-    // Send state to database on click
-    btn.addEventListener('click', () => {
-      set(lightRef, !currentState);
+    devices.forEach((deviceKey) => {
+      const deviceRef = ref(db, `smart_home/${deviceKey}`);
+      const btn = document.getElementById(`btn-${deviceKey}`);
+      const badge = document.getElementById(`badge-${deviceKey}`);
+
+      // Realtime Listener
+      onValue(deviceRef, (snapshot) => {
+        const val = snapshot.val() || false;
+        stateMap[deviceKey] = val;
+
+        if (val) {
+          badge.textContent = "ON";
+          badge.className = "text-xs px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold";
+          btn.textContent = "Turn OFF";
+          btn.className = "w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 font-bold transition";
+        } else {
+          badge.textContent = "OFF";
+          badge.className = "text-xs px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold";
+          btn.textContent = "Turn ON";
+          btn.className = "w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition";
+        }
+      });
+
+      // Button Click Handler
+      btn.addEventListener("click", () => {
+        set(deviceRef, !stateMap[deviceKey]);
+      });
     });
   </script>
 </body>
