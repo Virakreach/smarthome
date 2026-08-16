@@ -1,159 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Home 8-Channel Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-6 flex flex-col items-center">
-
-  <header class="mb-8 text-center">
-    <h1 class="text-3xl font-extrabold text-blue-400">Smart Home Controller</h1>
-    <p class="text-slate-400 text-sm mt-1">Real-time ESP32 Control Dashboard</p>
-  </header>
-
-  <!-- 8 Device Cards Grid -->
-  <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Dashboard</title>
     
-    <!-- Living Room Lamp -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-      <div>
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="font-semibold text-lg">Living Room Lamp</h2>
-          <span id="badge-living_room" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
-        </div>
-      </div>
-      <button id="btn-living_room" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
-    </div>
-
-    <!-- Bed Lamp -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-      <div>
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="font-semibold text-lg">Bed Lamp</h2>
-          <span id="badge-bed_lamp" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
-        </div>
-      </div>
-      <button id="btn-bed_lamp" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
-    </div>
-
-    <!-- Master Bedroom Lamp -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-      <div>
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="font-semibold text-lg">Master Bed Lamp</h2>
-          <span id="badge-master_bed" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
-        </div>
-      </div>
-      <button id="btn-master_bed" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
-    </div>
-
-    <!-- Kitchen Lamp -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-      <div>
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="font-semibold text-lg">Kitchen Lamp</h2>
-          <span id="badge-kitchen" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
-        </div>
-      </div>
-      <button id="btn-kitchen" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
-    </div>
-
-    <!-- Toilet Lamp -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-      <div>
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="font-semibold text-lg">Toilet Lamp</h2>
-          <span id="badge-toilet" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
-        </div>
-      </div>
-      <button id="btn-toilet" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
-    </div>
-
-    <!-- AC -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-      <div>
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="font-semibold text-lg">AC Power</h2>
-          <span id="badge-ac" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
-        </div>
-      </div>
-      <button id="btn-ac" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
-    </div>
-
-    <!-- Main Door -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-      <div>
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="font-semibold text-lg">Main Door Lock</h2>
-          <span id="badge-main_door" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
-        </div>
-      </div>
-      <button id="btn-main_door" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
-    </div>
-
-    <!-- Music System -->
-    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
-      <div>
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="font-semibold text-lg">Music System</h2>
-          <span id="badge-music" class="text-xs px-3 py-1 rounded-full bg-slate-700 text-slate-400 font-bold">Connecting...</span>
-        </div>
-      </div>
-      <button id="btn-music" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition">Turn ON</button>
-    </div>
-
-  </main>
-
-  <!-- Firebase JavaScript Setup -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBv-B-d6-lDoDp_cxyxJ5UKe_iyWmKtHJo",
-      databaseURL: "https://smarthome-5c06b-default-rtdb.asia-southeast1.firebasedatabase.app"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const devices = [
-      "living_room", "bed_lamp", "master_bed", "kitchen",
-      "toilet", "ac", "main_door", "music"
-    ];
-
-    const stateMap = {};
-
-    devices.forEach((deviceKey) => {
-      const deviceRef = ref(db, `smart_home/${deviceKey}`);
-      const btn = document.getElementById(`btn-${deviceKey}`);
-      const badge = document.getElementById(`badge-${deviceKey}`);
-
-      // Realtime Listener
-      onValue(deviceRef, (snapshot) => {
-        const val = snapshot.val() || false;
-        stateMap[deviceKey] = val;
-
-        if (val) {
-          badge.textContent = "ON";
-          badge.className = "text-xs px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold";
-          btn.textContent = "Turn OFF";
-          btn.className = "w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 font-bold transition";
-        } else {
-          badge.textContent = "OFF";
-          badge.className = "text-xs px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold";
-          btn.textContent = "Turn ON";
-          btn.className = "w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold transition";
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .device-card {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease-in-out;
         }
-      });
+        .switch { position: relative; display: inline-block; width: 42px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; pointer-events: none;}
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(18px); }
+        
+        /* Time Input Styling */
+        input[type="time"] { cursor: pointer; background: #f8fafc; outline: none; }
+        input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 pb-10">
 
-      // Button Click Handler
-      btn.addEventListener("click", () => {
-        set(deviceRef, !stateMap[deviceKey]);
-      });
-    });
-  </script>
+    <div class="max-w-6xl mx-auto p-4 md:p-10">
+        
+        <!-- Header & Real-Time Clock -->
+        <header class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">My Home</h1>
+                <div class="flex items-center gap-2 mt-2 text-slate-500 font-medium">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="real-time-clock" class="tracking-wide">00:00:00 AM</span>
+                </div>
+            </div>
+            
+            <!-- Connection Status Badges -->
+            <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                <div id="status-fb" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-200 text-slate-500 transition-colors">
+                    <i class="fa-solid fa-database"></i> Firebase
+                </div>
+                <div id="status-esp" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-200 text-slate-500 transition-colors">
+                    <i class="fa-solid fa-microchip"></i> ESP32
+                </div>
+                <div id="status-sinric" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-200 text-slate-500 transition-colors">
+                    <i class="fa-solid fa-microphone"></i> Sinric Pro
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Device Grid -->
+        <div id="device-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <!-- Cards injected by JS -->
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK & Control Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBv-B-d6-lDoDp_cxyxJ5UKe_iyWmKtHJo",
+            databaseURL: "https://smarthome-5c06b-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const devices = [
+            { id: 'living_room', name: 'Living Room', iconOn: 'fa-solid fa-lightbulb text-yellow-400', iconOff: 'fa-solid fa-lightbulb text-slate-300' },
+            { id: 'bed_lamp', name: 'Bed Lamp', iconOn: 'fa-solid fa-lamp text-yellow-400', iconOff: 'fa-solid fa-lamp text-slate-300' },
+            { id: 'master_bed', name: 'Master Bed', iconOn: 'fa-solid fa-bed text-indigo-500', iconOff: 'fa-solid fa-bed text-slate-300' },
+            { id: 'kitchen', name: 'Kitchen', iconOn: 'fa-solid fa-utensils text-orange-400', iconOff: 'fa-solid fa-utensils text-slate-300' },
+            { id: 'toilet', name: 'Toilet', iconOn: 'fa-solid fa-bath text-cyan-400', iconOff: 'fa-solid fa-bath text-slate-300' },
+            { id: 'ac', name: 'AC Power', iconOn: 'fa-solid fa-snowflake text-blue-500', iconOff: 'fa-solid fa-snowflake text-slate-300' },
+            { id: 'main_door', name: 'Main Door', iconOn: 'fa-solid fa-door-open text-green-500', iconOff: 'fa-solid fa-door-closed text-red-500' },
+            { id: 'music', name: 'Music System', iconOn: 'fa-solid fa-music text-purple-500', iconOff: 'fa-solid fa-music text-slate-300' }
+        ];
+
+        const grid = document.getElementById('device-grid');
+        const deviceData = {}; // Stores state and timer info
+
+        // 1. Build the UI
+        devices.forEach(device => {
+            deviceData[device.id] = { state: false, onSince: null };
+
+            const card = document.createElement('div');
+            card.className = "device-card rounded-2xl p-5 flex flex-col justify-between";
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-3" style="cursor:pointer;" id="toggle-area-${device.id}">
+                    <div id="icon-bg-${device.id}" class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center transition-colors">
+                        <i id="icon-${device.id}" class="${device.iconOff} text-xl transition-all"></i>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-${device.id}" tabindex="-1">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="mb-3 border-b border-slate-100 pb-3">
+                    <h2 class="text-base font-semibold text-slate-800">${device.name}</h2>
+                    <div class="flex justify-between items-center mt-1">
+                        <span id="status-${device.id}" class="text-xs font-medium text-slate-400 uppercase">Offline</span>
+                        <span class="text-xs font-medium text-slate-500 flex items-center gap-1">
+                            <i class="fa-solid fa-stopwatch"></i> <span id="usage-${device.id}">00:00</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                        <label class="text-slate-400 font-medium block mb-1">Start Time</label>
+                        <input type="time" id="start-${device.id}" class="w-full border border-slate-200 rounded-lg p-1.5 text-slate-600">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-medium block mb-1">Stop Time</label>
+                        <input type="time" id="stop-${device.id}" class="w-full border border-slate-200 rounded-lg p-1.5 text-slate-600">
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+
+            const toggleInput = document.getElementById(`toggle-${device.id}`);
+            const iconElement = document.getElementById(`icon-${device.id}`);
+            const iconBg = document.getElementById(`icon-bg-${device.id}`);
+            const statusText = document.getElementById(`status-${device.id}`);
+            const toggleArea = document.getElementById(`toggle-area-${device.id}`);
+            const deviceRef = ref(db, 'smart_home/' + device.id);
+
+            // 2. Click Logic
+            toggleArea.addEventListener('click', (e) => {
+                e.preventDefault();
+                set(deviceRef, !deviceData[device.id].state);
+            });
+
+            // 3. Listen to Firebase
+            onValue(deviceRef, (snapshot) => {
+                const state = snapshot.val();
+                if (state !== null) {
+                    // Start usage timer if turning ON
+                    if (state && !deviceData[device.id].state) {
+                        deviceData[device.id].onSince = Date.now();
+                    }
+                    deviceData[device.id].state = state;
+                    toggleInput.checked = state;
+                    
+                    if (state) {
+                        iconElement.className = `${device.iconOn} text-xl transform scale-110`;
+                        iconBg.className = "w-12 h-12 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center transition-colors";
+                        statusText.textContent = "ON";
+                        statusText.className = "text-xs font-bold text-green-500 uppercase";
+                    } else {
+                        iconElement.className = `${device.iconOff} text-xl transform scale-100`;
+                        iconBg.className = "w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center transition-colors";
+                        statusText.textContent = "OFF";
+                        statusText.className = "text-xs font-medium text-slate-400 uppercase";
+                        document.getElementById(`usage-${device.id}`).textContent = "00:00"; // Reset timer UI
+                    }
+                }
+            });
+        });
+
+        // 4. Global Clock, Usage Timer, and Scheduler Logic
+        setInterval(() => {
+            const now = new Date();
+            
+            // Update Real-Time Clock
+            document.getElementById('real-time-clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second:'2-digit' });
+            
+            const currentHourMin = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+            devices.forEach(device => {
+                // Update Usage Duration
+                if (deviceData[device.id].state && deviceData[device.id].onSince) {
+                    const diffSeconds = Math.floor((Date.now() - deviceData[device.id].onSince) / 1000);
+                    const m = Math.floor(diffSeconds / 60).toString().padStart(2, '0');
+                    const s = (diffSeconds % 60).toString().padStart(2, '0');
+                    document.getElementById(`usage-${device.id}`).textContent = `${m}:${s}`;
+                }
+
+                // Check Schedule Auto-Start/Stop (Triggers at exactly 0 seconds of the matched minute)
+                if (now.getSeconds() === 0) {
+                    const startVal = document.getElementById(`start-${device.id}`).value;
+                    const stopVal = document.getElementById(`stop-${device.id}`).value;
+                    
+                    if (startVal === currentHourMin && !deviceData[device.id].state) {
+                        set(ref(db, 'smart_home/' + device.id), true);
+                    }
+                    if (stopVal === currentHourMin && deviceData[device.id].state) {
+                        set(ref(db, 'smart_home/' + device.id), false);
+                    }
+                }
+            });
+        }, 1000);
+
+        // 5. System Connection Status Monitor
+        const connectedRef = ref(db, ".info/connected");
+        onValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                document.getElementById('status-fb').className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 text-green-700 transition-colors";
+                document.getElementById('status-esp').className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 text-green-700 transition-colors";
+                document.getElementById('status-sinric').className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 transition-colors";
+            } else {
+                document.getElementById('status-fb').className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-100 text-red-600 transition-colors";
+                document.getElementById('status-esp').className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-200 text-slate-500 transition-colors";
+                document.getElementById('status-sinric').className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-200 text-slate-500 transition-colors";
+            }
+        });
+    </script>
 </body>
 </html>
