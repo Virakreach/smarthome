@@ -30,19 +30,31 @@
         /* Time Input Styling */
         input[type="time"] { cursor: pointer; background: #f8fafc; outline: none; }
         input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
+
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 pb-10">
 
     <div class="max-w-6xl mx-auto p-4 md:p-10">
         
-        <!-- Header & Real-Time Clock -->
+        <!-- Header, Clock & Weather -->
         <header class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
             <div>
                 <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">My Home</h1>
-                <div class="flex items-center gap-2 mt-2 text-slate-500 font-medium">
-                    <i class="fa-regular fa-clock"></i>
-                    <span id="real-time-clock" class="tracking-wide">00:00:00 AM</span>
+                <div class="flex flex-wrap items-center gap-4 mt-2 text-slate-500 font-medium text-sm">
+                    <div class="flex items-center gap-1.5">
+                        <i class="fa-regular fa-clock"></i>
+                        <span id="real-time-clock" class="tracking-wide">00:00:00 AM</span>
+                    </div>
+                    <span class="text-slate-300">|</span>
+                    <div id="weather-widget" class="flex items-center gap-1.5 text-slate-600">
+                        <i class="fa-solid fa-spinner animate-spin"></i> Loading weather...
+                    </div>
                 </div>
             </div>
             
@@ -60,6 +72,30 @@
             </div>
         </header>
 
+        <!-- Dynamic Alert Banners Container -->
+        <div id="alert-banner-container" class="space-y-3 mb-6"></div>
+
+        <!-- Smart Scenes Control Bar -->
+        <div class="bg-white rounded-2xl p-4 md:p-5 mb-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                    <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                </div>
+                Smart Scenes & Modes
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button id="btn-night" class="px-3.5 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 transition flex items-center gap-1.5">
+                    🌙 Good Night
+                </button>
+                <button id="btn-away" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition flex items-center gap-1.5">
+                    🚪 Away Mode
+                </button>
+                <button id="btn-movie" class="px-3.5 py-2 rounded-xl bg-purple-50 text-purple-700 text-xs font-semibold hover:bg-purple-100 transition flex items-center gap-1.5">
+                    🍿 Movie Mode
+                </button>
+            </div>
+        </div>
+
         <!-- Dynamic Device Grid -->
         <div id="device-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <!-- Cards injected by JS -->
@@ -70,7 +106,7 @@
     <!-- Firebase SDK & Control Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBv-B-d6-lDoDp_cxyxJ5UKe_iyWmKtHJo",
@@ -79,7 +115,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Updated Bed Lamp to use 'fa-baby' icon
+        // 8 Devices including Baby Bed lamp
         const devices = [
             { id: 'living_room', name: 'Living Room', iconOn: 'fa-solid fa-lightbulb text-yellow-400', iconOff: 'fa-solid fa-lightbulb text-slate-300' },
             { id: 'bed_lamp', name: 'Baby Bed', iconOn: 'fa-solid fa-baby text-pink-400', iconOff: 'fa-solid fa-baby text-slate-300' },
@@ -94,9 +130,8 @@
         const grid = document.getElementById('device-grid');
         const deviceData = {}; 
 
-        // 1. Build the UI
+        // 1. Build the UI Cards
         devices.forEach(device => {
-            // Added lastScheduleAction to prevent double-triggering
             deviceData[device.id] = { state: false, onSince: null, lastScheduleAction: null };
 
             const card = document.createElement('div');
@@ -143,18 +178,20 @@
             const toggleArea = document.getElementById(`toggle-area-${device.id}`);
             const deviceRef = ref(db, 'smart_home/' + device.id);
 
-            // 2. Click Logic
+            // Click Logic
             toggleArea.addEventListener('click', (e) => {
                 e.preventDefault();
                 set(deviceRef, !deviceData[device.id].state);
             });
 
-            // 3. Listen to Firebase
+            // Listen to Firebase
             onValue(deviceRef, (snapshot) => {
                 const state = snapshot.val();
                 if (state !== null) {
                     if (state && !deviceData[device.id].state) {
                         deviceData[device.id].onSince = Date.now();
+                    } else if (!state) {
+                        deviceData[device.id].onSince = null;
                     }
                     deviceData[device.id].state = state;
                     toggleInput.checked = state;
@@ -162,33 +199,125 @@
                     if (state) {
                         iconElement.className = `${device.iconOn} text-xl transform scale-110`;
                         iconBg.className = "w-12 h-12 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center transition-colors";
-                        statusText.textContent = "ON";
-                        statusText.className = "text-xs font-bold text-green-500 uppercase";
+                        statusText.textContent = device.id === 'main_door' ? "OPEN" : "ON";
+                        statusText.className = device.id === 'main_door' ? "text-xs font-bold text-green-500 uppercase" : "text-xs font-bold text-green-500 uppercase";
                     } else {
                         iconElement.className = `${device.iconOff} text-xl transform scale-100`;
                         iconBg.className = "w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center transition-colors";
-                        statusText.textContent = "OFF";
-                        statusText.className = "text-xs font-medium text-slate-400 uppercase";
+                        statusText.textContent = device.id === 'main_door' ? "CLOSED" : "OFF";
+                        statusText.className = device.id === 'main_door' ? "text-xs font-medium text-red-500 uppercase" : "text-xs font-medium text-slate-400 uppercase";
                         document.getElementById(`usage-${device.id}`).textContent = "00:00"; 
                     }
                 }
             });
         });
 
-        // 4. Global Clock & Fixed Schedule Logic
+        // 2. Smart Scenes Button Handlers
+        document.getElementById('btn-night').addEventListener('click', () => {
+            update(ref(db, 'smart_home'), {
+                living_room: false,
+                bed_lamp: true,     // Baby lamp ON
+                master_bed: false,
+                kitchen: false,
+                toilet: false,
+                ac: true,           // AC on for sleeping
+                main_door: false,   // Closed/Locked
+                music: false
+            });
+        });
+
+        document.getElementById('btn-away').addEventListener('click', () => {
+            update(ref(db, 'smart_home'), {
+                living_room: false,
+                bed_lamp: false,
+                master_bed: false,
+                kitchen: false,
+                toilet: false,
+                ac: false,
+                music: false
+            });
+        });
+
+        document.getElementById('btn-movie').addEventListener('click', () => {
+            update(ref(db, 'smart_home'), {
+                living_room: false, // Dim lights
+                music: true         // Music system ON
+            });
+        });
+
+        // 3. Fetch Real Weather (Open-Meteo API)
+        fetch('https://api.open-meteo.com/v1/forecast?latitude=11.5621&longitude=104.9160&current=temperature_2m,weather_code')
+            .then(res => res.json())
+            .then(data => {
+                const temp = Math.round(data.current.temperature_2m);
+                document.getElementById('weather-widget').innerHTML = `
+                    <i class="fa-solid fa-cloud-sun text-amber-500"></i>
+                    <span>${temp}°C, Phnom Penh</span>
+                `;
+            })
+            .catch(() => {
+                document.getElementById('weather-widget').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-slate-400"></i> Weather unavailable`;
+            });
+
+        // 4. Global Clock, Usage Timers, Schedules, and Security Alert Banners
         setInterval(() => {
             const now = new Date();
             
-            // Update Real-Time Clock text
+            // Real-Time Clock Text
             document.getElementById('real-time-clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second:'2-digit' });
             
-            // Fixed String Format: Forces exact HH:MM structure so it ALWAYS matches the input box
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const currentHourMin = `${hours}:${minutes}`;
+            const currentHourInt = now.getHours();
+
+            let alertsHTML = '';
+
+            // Security Alert: Check if Main Door has been open for > 5 minutes
+            const doorData = deviceData['main_door'];
+            if (doorData && doorData.state && doorData.onSince) {
+                const openDurationMs = Date.now() - doorData.onSince;
+                if (openDurationMs > 5 * 60 * 1000) {
+                    alertsHTML += `
+                        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-xl flex items-center justify-between shadow-sm animate-pulse-soft">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-amber-900">Security Alert</h3>
+                                    <p class="text-xs text-amber-700 mt-0.5">Alert: Main Door is still open for more than 5 minutes!</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // Security Alert: Late night running appliances reminder (between 11 PM and 5 AM)
+            if (currentHourInt >= 23 || currentHourInt < 5) {
+                const activeHeavyDevices = ['ac', 'kitchen', 'music'].filter(id => deviceData[id] && deviceData[id].state);
+                if (activeHeavyDevices.length > 0) {
+                    alertsHTML += `
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-moon text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-blue-900">Late Night Reminder</h3>
+                                    <p class="text-xs text-blue-700 mt-0.5">Some heavy appliances are running unexpectedly late at night.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            document.getElementById('alert-banner-container').innerHTML = alertsHTML;
 
             devices.forEach(device => {
-                // Update Usage Duration
+                // Update Usage Duration Text
                 if (deviceData[device.id].state && deviceData[device.id].onSince) {
                     const diffSeconds = Math.floor((Date.now() - deviceData[device.id].onSince) / 1000);
                     const m = Math.floor(diffSeconds / 60).toString().padStart(2, '0');
@@ -196,17 +325,15 @@
                     document.getElementById(`usage-${device.id}`).textContent = `${m}:${s}`;
                 }
 
-                // New Bulletproof Schedule Auto-Start/Stop
+                // Schedule Auto-Start/Stop
                 const startVal = document.getElementById(`start-${device.id}`).value;
                 const stopVal = document.getElementById(`stop-${device.id}`).value;
                 
-                // If it is the exact minute to START, device is OFF, and we haven't already triggered it this minute
                 if (startVal === currentHourMin && !deviceData[device.id].state && deviceData[device.id].lastScheduleAction !== currentHourMin) {
                     set(ref(db, 'smart_home/' + device.id), true);
                     deviceData[device.id].lastScheduleAction = currentHourMin;
                 }
                 
-                // If it is the exact minute to STOP, device is ON, and we haven't already triggered it this minute
                 if (stopVal === currentHourMin && deviceData[device.id].state && deviceData[device.id].lastScheduleAction !== currentHourMin) {
                     set(ref(db, 'smart_home/' + device.id), false);
                     deviceData[device.id].lastScheduleAction = currentHourMin;
