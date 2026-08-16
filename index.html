@@ -15,7 +15,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; transition: background 0.5s ease, color 0.5s ease; }
         
-        /* Default Light Theme Styles */
+        /* Light Theme Styles */
         .device-card {
             background: #ffffff;
             border: 1px solid rgba(226, 232, 240, 0.8);
@@ -76,14 +76,14 @@
 
     <div class="max-w-6xl mx-auto p-4 md:p-10">
         
-        <!-- Header, Clock, Weather & Theme Toggle -->
+        <!-- Header, Clock, Weather & Theme Selector -->
         <header class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
             <div>
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     <h1 class="text-3xl md:text-4xl font-bold tracking-tight">My Home</h1>
-                    <!-- Theme Toggle Button -->
-                    <button id="theme-toggle" class="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-yellow-400 transition shadow-sm" title="Toggle Light/Dark Mode">
-                        <i id="theme-icon" class="fa-solid fa-moon text-lg"></i>
+                    <!-- 3-Way Theme Mode Button -->
+                    <button id="theme-mode-btn" class="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-semibold flex items-center gap-2 text-slate-700 dark:text-slate-200 transition shadow-sm" title="Click to switch theme mode">
+                        <i id="theme-mode-icon" class="fa-solid fa-cloud-sun"></i> <span id="theme-mode-text">Mode: Auto</span>
                     </button>
                 </div>
                 <div class="flex flex-wrap items-center gap-4 mt-2 text-slate-500 font-medium text-sm">
@@ -169,7 +169,7 @@
         const grid = document.getElementById('device-grid');
         const deviceData = {}; 
 
-        // 1. Build the UI Cards
+        // 1. Build UI Cards
         devices.forEach(device => {
             deviceData[device.id] = { state: false, onSince: null, lastScheduleAction: null };
 
@@ -217,13 +217,11 @@
             const toggleArea = document.getElementById(`toggle-area-${device.id}`);
             const deviceRef = ref(db, 'smart_home/' + device.id);
 
-            // Click Logic
             toggleArea.addEventListener('click', (e) => {
                 e.preventDefault();
                 set(deviceRef, !deviceData[device.id].state);
             });
 
-            // Listen to Firebase
             onValue(deviceRef, (snapshot) => {
                 const state = snapshot.val();
                 if (state !== null) {
@@ -251,40 +249,85 @@
             });
         });
 
-        // 2. Fixed Smart Scenes (Sends individual set() commands so hardware ESP32 catches every change)
+        // 2. Fixed Staggered Smart Scenes (Prevents ESP32 hardware packet loss)
         const applyScene = (statesObj) => {
+            let delay = 0;
             for (const [devId, val] of Object.entries(statesObj)) {
-                set(ref(db, 'smart_home/' + devId), val);
+                setTimeout(() => {
+                    set(ref(db, 'smart_home/' + devId), val);
+                }, delay);
+                delay += 150; // 150ms stagger between each device command
             }
         };
 
         document.getElementById('btn-night').addEventListener('click', () => {
-            applyScene({ living_room: false, bed_lamp: true, master_bed: false, kitchen: false, toilet: false, ac: true, main_door: false, music: false });
+            applyScene({ 
+                living_room: false, 
+                bed_lamp: true,     // Baby lamp ON
+                master_bed: false, 
+                kitchen: false, 
+                toilet: false, 
+                ac: true,           // AC ON
+                main_door: false,   // Closed
+                music: false 
+            });
         });
 
         document.getElementById('btn-away').addEventListener('click', () => {
-            applyScene({ living_room: false, bed_lamp: false, master_bed: false, kitchen: false, toilet: false, ac: false, music: false });
+            applyScene({ 
+                living_room: false, 
+                bed_lamp: false, 
+                master_bed: false, 
+                kitchen: false, 
+                toilet: false, 
+                ac: false, 
+                main_door: false,
+                music: false 
+            });
         });
 
         document.getElementById('btn-movie').addEventListener('click', () => {
-            applyScene({ living_room: false, music: true });
+            applyScene({ 
+                living_room: false, 
+                music: true 
+            });
         });
 
-        // 3. Theme Toggle Logic
-        const themeToggleBtn = document.getElementById('theme-toggle');
+        // 3. 3-Way Theme Controller (Auto/Weather, Light, Dark)
+        let themeMode = 'auto'; // 'auto', 'light', 'dark'
+        const themeBtn = document.getElementById('theme-mode-btn');
+        const themeIcon = document.getElementById('theme-mode-icon');
+        const themeText = document.getElementById('theme-mode-text');
         const pageBody = document.getElementById('page-body');
-        const themeIcon = document.getElementById('theme-icon');
+        let lastWeatherBg = "bg-gradient-to-br from-slate-50 to-blue-50";
 
-        themeToggleBtn.addEventListener('click', () => {
-            pageBody.classList.toggle('dark-mode');
-            if (pageBody.classList.contains('dark-mode')) {
-                themeIcon.className = "fa-solid fa-sun text-lg text-yellow-400";
+        function updateThemeDisplay() {
+            pageBody.classList.remove('dark-mode');
+            if (themeMode === 'dark') {
+                pageBody.classList.add('dark-mode');
+                pageBody.className = "bg-slate-900 min-h-screen text-slate-100 pb-10 dark-mode";
+                themeIcon.className = "fa-solid fa-moon text-indigo-400";
+                themeText.textContent = "Mode: Dark";
+            } else if (themeMode === 'light') {
+                pageBody.className = "bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen text-slate-800 pb-10";
+                themeIcon.className = "fa-solid fa-sun text-amber-500";
+                themeText.textContent = "Mode: Light";
             } else {
-                themeIcon.className = "fa-solid fa-moon text-lg text-slate-700";
+                // Auto / Weather Mode
+                themeIcon.className = "fa-solid fa-cloud-sun text-blue-400";
+                themeText.textContent = "Mode: Auto";
+                pageBody.className = `${lastWeatherBg} min-h-screen text-slate-800 pb-10`;
             }
+        }
+
+        themeBtn.addEventListener('click', () => {
+            if (themeMode === 'auto') themeMode = 'light';
+            else if (themeMode === 'light') themeMode = 'dark';
+            else themeMode = 'auto';
+            updateThemeDisplay();
         });
 
-        // 4. Fetch Weather & Adapt Background based on Conditions
+        // 4. Fetch Weather & Adapt Background in Auto Mode
         fetch('https://api.open-meteo.com/v1/forecast?latitude=11.5621&longitude=104.9160&current=temperature_2m,weather_code,is_day')
             .then(res => res.json())
             .then(data => {
@@ -295,19 +338,22 @@
                 let weatherText = "Clear";
                 let weatherIconClass = "fa-solid fa-sun text-amber-500";
                 
-                // Adapt background gradient based on weather / time
                 if (code >= 51 && code <= 67) {
                     weatherText = "Rainy";
                     weatherIconClass = "fa-solid fa-cloud-rain text-blue-400";
-                    if (!pageBody.classList.contains('dark-mode')) {
-                        pageBody.className = "bg-gradient-to-br from-slate-200 to-blue-300 min-h-screen text-slate-800 pb-10";
-                    }
+                    lastWeatherBg = "bg-gradient-to-br from-slate-200 to-blue-300";
                 } else if (code >= 1 && code <= 3) {
                     weatherText = "Cloudy";
                     weatherIconClass = "fa-solid fa-cloud text-slate-400";
+                    lastWeatherBg = "bg-gradient-to-br from-slate-100 to-slate-300";
                 } else if (isDay === 0) {
                     weatherText = "Night";
                     weatherIconClass = "fa-solid fa-moon text-indigo-400";
+                    lastWeatherBg = "bg-gradient-to-br from-slate-900 to-indigo-950";
+                }
+
+                if (themeMode === 'auto') {
+                    pageBody.className = `${lastWeatherBg} min-h-screen text-slate-800 pb-10`;
                 }
 
                 document.getElementById('weather-widget').innerHTML = `
