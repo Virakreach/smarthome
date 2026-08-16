@@ -124,6 +124,9 @@
                 Smart Scenes & Modes
             </div>
             <div class="flex flex-wrap gap-2">
+                <button id="btn-welcome" class="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition flex items-center gap-1.5">
+                    🏠 Welcome Home
+                </button>
                 <button id="btn-night" class="px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition flex items-center gap-1.5">
                     🌙 Good Night
                 </button>
@@ -178,7 +181,7 @@
             
             card.innerHTML = `
                 <div class="flex justify-between items-start mb-3" style="cursor:pointer;" id="toggle-area-${device.id}">
-                    <div id="icon-bg-${device.id}" class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center transition-colors">
+                    <div id="icon-bg-${device.id}" class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center transition-colors">
                         <i id="icon-${device.id}" class="${device.iconOff} text-xl transition-all"></i>
                     </div>
                     <label class="switch">
@@ -260,15 +263,28 @@
             }
         };
 
+        document.getElementById('btn-welcome').addEventListener('click', () => {
+            applyScene({ 
+                living_room: true, 
+                bed_lamp: true, 
+                master_bed: true, 
+                kitchen: true, 
+                toilet: true, 
+                ac: true, 
+                main_door: true, 
+                music: true 
+            });
+        });
+
         document.getElementById('btn-night').addEventListener('click', () => {
             applyScene({ 
                 living_room: false, 
-                bed_lamp: true,     // Baby lamp ON
+                bed_lamp: true,     
                 master_bed: false, 
                 kitchen: false, 
                 toilet: false, 
-                ac: true,           // AC ON
-                main_door: false,   // Closed
+                ac: true,           
+                main_door: false,   
                 music: false 
             });
         });
