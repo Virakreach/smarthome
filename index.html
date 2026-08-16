@@ -79,9 +79,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // Updated Bed Lamp to use 'fa-baby' icon
         const devices = [
             { id: 'living_room', name: 'Living Room', iconOn: 'fa-solid fa-lightbulb text-yellow-400', iconOff: 'fa-solid fa-lightbulb text-slate-300' },
-            { id: 'bed_lamp', name: 'Bed Lamp', iconOn: 'fa-solid fa-lamp text-yellow-400', iconOff: 'fa-solid fa-lamp text-slate-300' },
+            { id: 'bed_lamp', name: 'Baby Bed', iconOn: 'fa-solid fa-baby text-pink-400', iconOff: 'fa-solid fa-baby text-slate-300' },
             { id: 'master_bed', name: 'Master Bed', iconOn: 'fa-solid fa-bed text-indigo-500', iconOff: 'fa-solid fa-bed text-slate-300' },
             { id: 'kitchen', name: 'Kitchen', iconOn: 'fa-solid fa-utensils text-orange-400', iconOff: 'fa-solid fa-utensils text-slate-300' },
             { id: 'toilet', name: 'Toilet', iconOn: 'fa-solid fa-bath text-cyan-400', iconOff: 'fa-solid fa-bath text-slate-300' },
@@ -91,11 +92,12 @@
         ];
 
         const grid = document.getElementById('device-grid');
-        const deviceData = {}; // Stores state and timer info
+        const deviceData = {}; 
 
         // 1. Build the UI
         devices.forEach(device => {
-            deviceData[device.id] = { state: false, onSince: null };
+            // Added lastScheduleAction to prevent double-triggering
+            deviceData[device.id] = { state: false, onSince: null, lastScheduleAction: null };
 
             const card = document.createElement('div');
             card.className = "device-card rounded-2xl p-5 flex flex-col justify-between";
@@ -151,7 +153,6 @@
             onValue(deviceRef, (snapshot) => {
                 const state = snapshot.val();
                 if (state !== null) {
-                    // Start usage timer if turning ON
                     if (state && !deviceData[device.id].state) {
                         deviceData[device.id].onSince = Date.now();
                     }
@@ -168,20 +169,23 @@
                         iconBg.className = "w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center transition-colors";
                         statusText.textContent = "OFF";
                         statusText.className = "text-xs font-medium text-slate-400 uppercase";
-                        document.getElementById(`usage-${device.id}`).textContent = "00:00"; // Reset timer UI
+                        document.getElementById(`usage-${device.id}`).textContent = "00:00"; 
                     }
                 }
             });
         });
 
-        // 4. Global Clock, Usage Timer, and Scheduler Logic
+        // 4. Global Clock & Fixed Schedule Logic
         setInterval(() => {
             const now = new Date();
             
-            // Update Real-Time Clock
+            // Update Real-Time Clock text
             document.getElementById('real-time-clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second:'2-digit' });
             
-            const currentHourMin = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            // Fixed String Format: Forces exact HH:MM structure so it ALWAYS matches the input box
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const currentHourMin = `${hours}:${minutes}`;
 
             devices.forEach(device => {
                 // Update Usage Duration
@@ -192,17 +196,20 @@
                     document.getElementById(`usage-${device.id}`).textContent = `${m}:${s}`;
                 }
 
-                // Check Schedule Auto-Start/Stop (Triggers at exactly 0 seconds of the matched minute)
-                if (now.getSeconds() === 0) {
-                    const startVal = document.getElementById(`start-${device.id}`).value;
-                    const stopVal = document.getElementById(`stop-${device.id}`).value;
-                    
-                    if (startVal === currentHourMin && !deviceData[device.id].state) {
-                        set(ref(db, 'smart_home/' + device.id), true);
-                    }
-                    if (stopVal === currentHourMin && deviceData[device.id].state) {
-                        set(ref(db, 'smart_home/' + device.id), false);
-                    }
+                // New Bulletproof Schedule Auto-Start/Stop
+                const startVal = document.getElementById(`start-${device.id}`).value;
+                const stopVal = document.getElementById(`stop-${device.id}`).value;
+                
+                // If it is the exact minute to START, device is OFF, and we haven't already triggered it this minute
+                if (startVal === currentHourMin && !deviceData[device.id].state && deviceData[device.id].lastScheduleAction !== currentHourMin) {
+                    set(ref(db, 'smart_home/' + device.id), true);
+                    deviceData[device.id].lastScheduleAction = currentHourMin;
+                }
+                
+                // If it is the exact minute to STOP, device is ON, and we haven't already triggered it this minute
+                if (stopVal === currentHourMin && deviceData[device.id].state && deviceData[device.id].lastScheduleAction !== currentHourMin) {
+                    set(ref(db, 'smart_home/' + device.id), false);
+                    deviceData[device.id].lastScheduleAction = currentHourMin;
                 }
             });
         }, 1000);
