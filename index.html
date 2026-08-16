@@ -13,13 +13,48 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; transition: background 0.5s ease, color 0.5s ease; }
+        
+        /* Default Light Theme Styles */
         .device-card {
             background: #ffffff;
             border: 1px solid rgba(226, 232, 240, 0.8);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease-in-out;
+            transition: all 0.2s ease-in-out, background 0.3s ease, border 0.3s ease;
         }
+        .custom-panel { background: #ffffff; border-color: #f1f5f9; }
+        .time-input { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+
+        /* Dark Theme Styles */
+        body.dark-mode {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+        }
+        body.dark-mode .device-card {
+            background: #1e293b !important;
+            border: 1px solid rgba(51, 65, 85, 0.8) !important;
+            color: #f8fafc !important;
+        }
+        body.dark-mode .custom-panel {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+            color: #f8fafc !important;
+        }
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode span {
+            color: #f8fafc;
+        }
+        body.dark-mode .text-slate-500, body.dark-mode .text-slate-400 {
+            color: #94a3b8 !important;
+        }
+        body.dark-mode .time-input {
+            background: #0f172a !important;
+            color: #e2e8f0 !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode .bg-slate-100 {
+            background-color: #334155 !important;
+        }
+
         .switch { position: relative; display: inline-block; width: 42px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; pointer-events: none;}
@@ -27,8 +62,7 @@
         input:checked + .slider { background-color: #10b981; }
         input:checked + .slider:before { transform: translateX(18px); }
         
-        /* Time Input Styling */
-        input[type="time"] { cursor: pointer; background: #f8fafc; outline: none; }
+        input[type="time"] { cursor: pointer; outline: none; }
         input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
 
         @keyframes pulse-soft {
@@ -38,14 +72,20 @@
         .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 pb-10">
+<body id="page-body" class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen text-slate-800 pb-10">
 
     <div class="max-w-6xl mx-auto p-4 md:p-10">
         
-        <!-- Header, Clock & Weather -->
+        <!-- Header, Clock, Weather & Theme Toggle -->
         <header class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
             <div>
-                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">My Home</h1>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-3xl md:text-4xl font-bold tracking-tight">My Home</h1>
+                    <!-- Theme Toggle Button -->
+                    <button id="theme-toggle" class="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-yellow-400 transition shadow-sm" title="Toggle Light/Dark Mode">
+                        <i id="theme-icon" class="fa-solid fa-moon text-lg"></i>
+                    </button>
+                </div>
                 <div class="flex flex-wrap items-center gap-4 mt-2 text-slate-500 font-medium text-sm">
                     <div class="flex items-center gap-1.5">
                         <i class="fa-regular fa-clock"></i>
@@ -76,8 +116,8 @@
         <div id="alert-banner-container" class="space-y-3 mb-6"></div>
 
         <!-- Smart Scenes Control Bar -->
-        <div class="bg-white rounded-2xl p-4 md:p-5 mb-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+        <div class="custom-panel rounded-2xl p-4 md:p-5 mb-6 shadow-sm border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-2 text-sm font-semibold">
                 <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
                     <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                 </div>
@@ -106,7 +146,7 @@
     <!-- Firebase SDK & Control Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBv-B-d6-lDoDp_cxyxJ5UKe_iyWmKtHJo",
@@ -115,7 +155,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // 8 Devices including Baby Bed lamp
         const devices = [
             { id: 'living_room', name: 'Living Room', iconOn: 'fa-solid fa-lightbulb text-yellow-400', iconOff: 'fa-solid fa-lightbulb text-slate-300' },
             { id: 'bed_lamp', name: 'Baby Bed', iconOn: 'fa-solid fa-baby text-pink-400', iconOff: 'fa-solid fa-baby text-slate-300' },
@@ -148,8 +187,8 @@
                     </label>
                 </div>
                 
-                <div class="mb-3 border-b border-slate-100 pb-3">
-                    <h2 class="text-base font-semibold text-slate-800">${device.name}</h2>
+                <div class="mb-3 border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <h2 class="text-base font-semibold">${device.name}</h2>
                     <div class="flex justify-between items-center mt-1">
                         <span id="status-${device.id}" class="text-xs font-medium text-slate-400 uppercase">Offline</span>
                         <span class="text-xs font-medium text-slate-500 flex items-center gap-1">
@@ -161,11 +200,11 @@
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     <div>
                         <label class="text-slate-400 font-medium block mb-1">Start Time</label>
-                        <input type="time" id="start-${device.id}" class="w-full border border-slate-200 rounded-lg p-1.5 text-slate-600">
+                        <input type="time" id="start-${device.id}" class="time-input w-full border rounded-lg p-1.5">
                     </div>
                     <div>
                         <label class="text-slate-400 font-medium block mb-1">Stop Time</label>
-                        <input type="time" id="stop-${device.id}" class="w-full border border-slate-200 rounded-lg p-1.5 text-slate-600">
+                        <input type="time" id="stop-${device.id}" class="time-input w-full border rounded-lg p-1.5">
                     </div>
                 </div>
             `;
@@ -198,12 +237,12 @@
                     
                     if (state) {
                         iconElement.className = `${device.iconOn} text-xl transform scale-110`;
-                        iconBg.className = "w-12 h-12 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center transition-colors";
+                        iconBg.className = "w-12 h-12 rounded-full bg-white dark:bg-slate-700 shadow-sm border border-slate-100 dark:border-slate-600 flex items-center justify-center transition-colors";
                         statusText.textContent = device.id === 'main_door' ? "OPEN" : "ON";
-                        statusText.className = device.id === 'main_door' ? "text-xs font-bold text-green-500 uppercase" : "text-xs font-bold text-green-500 uppercase";
+                        statusText.className = "text-xs font-bold text-green-500 uppercase";
                     } else {
                         iconElement.className = `${device.iconOff} text-xl transform scale-100`;
-                        iconBg.className = "w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center transition-colors";
+                        iconBg.className = "w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center transition-colors";
                         statusText.textContent = device.id === 'main_door' ? "CLOSED" : "OFF";
                         statusText.className = device.id === 'main_door' ? "text-xs font-medium text-red-500 uppercase" : "text-xs font-medium text-slate-400 uppercase";
                         document.getElementById(`usage-${device.id}`).textContent = "00:00"; 
@@ -212,58 +251,78 @@
             });
         });
 
-        // 2. Smart Scenes Button Handlers
+        // 2. Fixed Smart Scenes (Sends individual set() commands so hardware ESP32 catches every change)
+        const applyScene = (statesObj) => {
+            for (const [devId, val] of Object.entries(statesObj)) {
+                set(ref(db, 'smart_home/' + devId), val);
+            }
+        };
+
         document.getElementById('btn-night').addEventListener('click', () => {
-            update(ref(db, 'smart_home'), {
-                living_room: false,
-                bed_lamp: true,     // Baby lamp ON
-                master_bed: false,
-                kitchen: false,
-                toilet: false,
-                ac: true,           // AC on for sleeping
-                main_door: false,   // Closed/Locked
-                music: false
-            });
+            applyScene({ living_room: false, bed_lamp: true, master_bed: false, kitchen: false, toilet: false, ac: true, main_door: false, music: false });
         });
 
         document.getElementById('btn-away').addEventListener('click', () => {
-            update(ref(db, 'smart_home'), {
-                living_room: false,
-                bed_lamp: false,
-                master_bed: false,
-                kitchen: false,
-                toilet: false,
-                ac: false,
-                music: false
-            });
+            applyScene({ living_room: false, bed_lamp: false, master_bed: false, kitchen: false, toilet: false, ac: false, music: false });
         });
 
         document.getElementById('btn-movie').addEventListener('click', () => {
-            update(ref(db, 'smart_home'), {
-                living_room: false, // Dim lights
-                music: true         // Music system ON
-            });
+            applyScene({ living_room: false, music: true });
         });
 
-        // 3. Fetch Real Weather (Open-Meteo API)
-        fetch('https://api.open-meteo.com/v1/forecast?latitude=11.5621&longitude=104.9160&current=temperature_2m,weather_code')
+        // 3. Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const pageBody = document.getElementById('page-body');
+        const themeIcon = document.getElementById('theme-icon');
+
+        themeToggleBtn.addEventListener('click', () => {
+            pageBody.classList.toggle('dark-mode');
+            if (pageBody.classList.contains('dark-mode')) {
+                themeIcon.className = "fa-solid fa-sun text-lg text-yellow-400";
+            } else {
+                themeIcon.className = "fa-solid fa-moon text-lg text-slate-700";
+            }
+        });
+
+        // 4. Fetch Weather & Adapt Background based on Conditions
+        fetch('https://api.open-meteo.com/v1/forecast?latitude=11.5621&longitude=104.9160&current=temperature_2m,weather_code,is_day')
             .then(res => res.json())
             .then(data => {
                 const temp = Math.round(data.current.temperature_2m);
+                const code = data.current.weather_code;
+                const isDay = data.current.is_day;
+
+                let weatherText = "Clear";
+                let weatherIconClass = "fa-solid fa-sun text-amber-500";
+                
+                // Adapt background gradient based on weather / time
+                if (code >= 51 && code <= 67) {
+                    weatherText = "Rainy";
+                    weatherIconClass = "fa-solid fa-cloud-rain text-blue-400";
+                    if (!pageBody.classList.contains('dark-mode')) {
+                        pageBody.className = "bg-gradient-to-br from-slate-200 to-blue-300 min-h-screen text-slate-800 pb-10";
+                    }
+                } else if (code >= 1 && code <= 3) {
+                    weatherText = "Cloudy";
+                    weatherIconClass = "fa-solid fa-cloud text-slate-400";
+                } else if (isDay === 0) {
+                    weatherText = "Night";
+                    weatherIconClass = "fa-solid fa-moon text-indigo-400";
+                }
+
                 document.getElementById('weather-widget').innerHTML = `
-                    <i class="fa-solid fa-cloud-sun text-amber-500"></i>
-                    <span>${temp}°C, Phnom Penh</span>
+                    <i class="${weatherIconClass}"></i>
+                    <span>${temp}°C, ${weatherText}</span>
                 `;
             })
             .catch(() => {
                 document.getElementById('weather-widget').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-slate-400"></i> Weather unavailable`;
             });
 
-        // 4. Global Clock, Usage Timers, Schedules, and Security Alert Banners
+        // 5. Global Clock, Usage Timers, Schedules, and Security Alert Banners
         setInterval(() => {
             const now = new Date();
             
-            // Real-Time Clock Text
             document.getElementById('real-time-clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second:'2-digit' });
             
             const hours = String(now.getHours()).padStart(2, '0');
@@ -273,20 +332,19 @@
 
             let alertsHTML = '';
 
-            // Security Alert: Check if Main Door has been open for > 5 minutes
             const doorData = deviceData['main_door'];
             if (doorData && doorData.state && doorData.onSince) {
                 const openDurationMs = Date.now() - doorData.onSince;
                 if (openDurationMs > 5 * 60 * 1000) {
                     alertsHTML += `
-                        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-xl flex items-center justify-between shadow-sm animate-pulse-soft">
+                        <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 p-4 rounded-xl flex items-center justify-between shadow-sm animate-pulse-soft">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                                <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-300 flex items-center justify-center">
                                     <i class="fa-solid fa-triangle-exclamation text-lg"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-sm font-bold text-amber-900">Security Alert</h3>
-                                    <p class="text-xs text-amber-700 mt-0.5">Alert: Main Door is still open for more than 5 minutes!</p>
+                                    <h3 class="text-sm font-bold text-amber-900 dark:text-amber-200">Security Alert</h3>
+                                    <p class="text-xs text-amber-700 dark:text-amber-400 mt-0.5">Alert: Main Door is still open for more than 5 minutes!</p>
                                 </div>
                             </div>
                         </div>
@@ -294,19 +352,18 @@
                 }
             }
 
-            // Security Alert: Late night running appliances reminder (between 11 PM and 5 AM)
             if (currentHourInt >= 23 || currentHourInt < 5) {
                 const activeHeavyDevices = ['ac', 'kitchen', 'music'].filter(id => deviceData[id] && deviceData[id].state);
                 if (activeHeavyDevices.length > 0) {
                     alertsHTML += `
-                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                        <div class="bg-blue-50 dark:bg-blue-950/40 border-l-4 border-blue-500 p-4 rounded-xl flex items-center justify-between shadow-sm">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 flex items-center justify-center">
                                     <i class="fa-solid fa-moon text-lg"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-sm font-bold text-blue-900">Late Night Reminder</h3>
-                                    <p class="text-xs text-blue-700 mt-0.5">Some heavy appliances are running unexpectedly late at night.</p>
+                                    <h3 class="text-sm font-bold text-blue-900 dark:text-blue-200">Late Night Reminder</h3>
+                                    <p class="text-xs text-blue-700 dark:text-blue-400 mt-0.5">Some heavy appliances are running unexpectedly late at night.</p>
                                 </div>
                             </div>
                         </div>
@@ -317,7 +374,6 @@
             document.getElementById('alert-banner-container').innerHTML = alertsHTML;
 
             devices.forEach(device => {
-                // Update Usage Duration Text
                 if (deviceData[device.id].state && deviceData[device.id].onSince) {
                     const diffSeconds = Math.floor((Date.now() - deviceData[device.id].onSince) / 1000);
                     const m = Math.floor(diffSeconds / 60).toString().padStart(2, '0');
@@ -325,7 +381,6 @@
                     document.getElementById(`usage-${device.id}`).textContent = `${m}:${s}`;
                 }
 
-                // Schedule Auto-Start/Stop
                 const startVal = document.getElementById(`start-${device.id}`).value;
                 const stopVal = document.getElementById(`stop-${device.id}`).value;
                 
@@ -341,7 +396,7 @@
             });
         }, 1000);
 
-        // 5. System Connection Status Monitor
+        // 6. System Connection Status Monitor
         const connectedRef = ref(db, ".info/connected");
         onValue(connectedRef, (snap) => {
             if (snap.val() === true) {
